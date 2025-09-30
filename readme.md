@@ -2,6 +2,8 @@ Install bun or your favourite js interpreter.
 
 Throw your program into `program` and then run the program with `bun run main.ts input`.
 
+Code quality not the best as this is a super quick project with next to no planning
+
 # Examples
 ```sql
 (Turing machine that acceps 0^n 1^n : n >= 1)
