@@ -1,8 +1,9 @@
 import fs from "fs";
 import { TM, Transition, NTransition } from "./adt";
-const args = Bun.argv.slice(2, Bun.argv.length);
 
-const tm = new TM(args[0] == undefined ? "" : args[0]);
+const args = Bun.argv
+  .slice(2, Bun.argv.length)
+  .map((arg) => (arg == "\epsilon" ? "" : arg));
 
 const getTransitions = (program: string): Transition[] => {
   const transitions = new Map<string, NTransition[]>();
@@ -22,17 +23,19 @@ const getTransitions = (program: string): Transition[] => {
 
     for (let j = 0; j < line.length; j++) {
       // Removes all comments
+      if (line[j] == ")" && isInComment) {
+        isInComment = false;
+        line[j] = "";
+      }
+
       if (
         isInComment ||
         line[j - 1] == ":" ||
-        (isInComment && line[j] == ")") ||
+        // (isInComment && line[j] == ")") ||
         (line[j] == "(" && (line[j - 1] == undefined || line[j - 1] == " "))
       ) {
         line[j] = "";
         isInComment = true;
-      }
-      if (line[j] == ")" && isInComment) {
-        isInComment = false;
       }
     }
 
@@ -47,6 +50,7 @@ const getTransitions = (program: string): Transition[] => {
     ) ?? [];
 
   tokens = tokens.flatMap((t) => (t === "else" ? ["read", "*"] : [t]));
+  tokens = tokens.map((t) => (t == "right" || t == "left" ? t[0] : t));
 
   let indentLevel = 0;
 
@@ -235,7 +239,31 @@ const getTransitions = (program: string): Transition[] => {
 };
 
 const program = fs.readFileSync("program", "utf8");
-getTransitions(program).forEach((transition) => tm.add(transition));
+const transitions = getTransitions(program);
 
-console.log(tm.begin());
-console.log(tm.getTape());
+fs.writeFileSync("morphett", "");
+
+transitions.forEach((transition) => {
+  fs.appendFileSync(
+    "morphett",
+    `
+    ${transition.currentState}
+    ${transition.currentCell}
+    ${transition.newCell}
+    ${transition.direction}
+    ${transition.newState}
+    `
+      .replaceAll("\n", "")
+      .replaceAll(/  +/g, " ")
+      .trim() + "\n",
+  );
+});
+
+args.forEach((arg: string) => {
+  const tm = new TM(arg);
+  transitions.forEach((transition) => tm.add(transition));
+  process.stdout.write(`${arg} ->`);
+  const finalTransitionState = tm.begin();
+  process.stdout.write(` ${tm.getTape()}`);
+  process.stdout.write(`: ${finalTransitionState}\n`);
+});

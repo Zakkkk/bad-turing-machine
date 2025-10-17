@@ -1,6 +1,6 @@
 Install bun or your favourite js interpreter.
 
-Throw your program into `program` and then run the program with `bun run main.ts input`.
+Throw your program into `program` and then run the program with `bun run main.ts input input input input`. The program will also be converted into Morphett notation into the `Morphett file.`. If you want to test the empty string use `\epsilon` as an input.
 
 Code quality not the best as this is a super quick project with next to no planning
 

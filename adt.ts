@@ -39,6 +39,7 @@ export class TM {
 
   write(symbol: string) {
     if (symbol.length != 1) {
+      console.log(symbol);
       throw new Error("Can only write a single character.");
     }
 
@@ -64,10 +65,15 @@ export class TM {
       };
     }
 
-    if (!directionIsValid(transition.direction))
+    if (!directionIsValid(transition.direction)) {
+      console.log(transition);
       throw new Error("Direction must be '[l]eft' '[r]ight' or 'stay'/'*'.");
+    }
+
+    transition.direction = transition.direction[0];
 
     if (transition.currentCell.length != 1 || transition.newCell.length != 1) {
+      console.log(transition);
       throw new Error("Symbols can only be a single character.");
     }
 
@@ -76,6 +82,7 @@ export class TM {
         .get(transition.currentState)
         ?.every((t) => t.currentCell == transition.currentCell)
     ) {
+      console.log(transition);
       throw new Error(
         `Cannot add duplicate transition ${transition.currentState}(${transition.currentCell}).`,
       );
