@@ -1,0 +1,139 @@
+0 -> start
+
+#define goto-first symbol name return-state majority-direction fixing-direction
+{name}:
+    read {symbol}:
+        move {fixing-direction}
+        {return-state}
+    else -> move {majority-direction}
+#enifed
+
+#define match-right symbol overwrite-symbol alt-symbol alt-overwrite-symbol match-state no-match-state
+(First we need to move all the way right to the head)
+match-right-{symbol}: Assumes we are just right of the character last matched on the left side.
+    read x -> match-right-{symbol}-find
+    read X -> match-right-{symbol}-find
+    read y -> match-right-{symbol}-find
+    read Y -> match-right-{symbol}-find
+    read z -> match-right-{symbol}-find
+    read Z -> match-right-{symbol}-find
+    read _ -> reject! (u is too long)
+    else -> move right
+
+match-right-{symbol}-find: Assumes we are on the head
+    read {symbol}: We have found a match!
+        write {overwrite-symbol}
+        {match-state}
+    read {alt-symbol}: We have found a match!
+        write {alt-overwrite-symbol}
+        {match-state}
+    read A -> move right
+    read B -> move right
+    read C -> move right
+    read X -> move right
+    read Y -> move right
+    read Z -> move right
+    read _ -> move left
+              {no-match-state}
+    else -> {no-match-state}
+#enifed
+
+(Legend)
+( - u head, a<->x, b<->y, c<->z)
+( - matched/seeking, become capitalised)
+
+(First we need to shift over by 2 chars)
+
+start -> shift-0
+shift-0(*) -> move right
+              shift-1
+shift-1(*) -> move right
+              swap-head-character
+
+swap-head-character: Assumes that the head is on the character to swap.
+    read a -> write x
+              head-character-swapped
+    read b -> write y
+              head-character-swapped
+    read c -> write z
+              head-character-swapped
+    read _ -> reject!
+
+{goto-first _ go-fully-left-and-match match-letter left right}
+head-character-swapped -> go-fully-left-and-match
+
+{match-right a A x X go-fully-left-and-match clean-up-and-move-head}
+{match-right b B y Y go-fully-left-and-match clean-up-and-move-head}
+{match-right c C z Z go-fully-left-and-match clean-up-and-move-head}
+
+match-letter: Assumes the head is all the way to the left on the first character.
+    read a:
+        write A
+        move right
+        match-right-a
+    read b:
+        write B
+        move right
+        match-right-b
+    read c:
+        write C
+        move right
+        match-right-c
+    read A -> move right
+    read B -> move right
+    read C -> move right
+    read _ -> reject! (There is no matching u)
+    else -> accept! (All the strings are matched, double check this though!)
+
+clean-up-and-move-head -> clean-up-and-move-head-fully-left
+{goto-first _ clean-up-and-move-head-fully-left start-cleaning-from-left left right}
+start-cleaning-from-left: Can also be on the character just right of the head.
+    read x -> write a
+              move right
+              move-head-over
+    read X -> write a
+              move right
+              move-head-over
+    read y -> write b
+              move right
+              move-head-over
+    read Y -> write b
+              move right
+              move-head-over
+    read z -> write c
+              move right
+              move-head-over
+    read Z -> write c
+              move right
+              move-head-over
+    read A -> write a
+              move right
+    read B -> write b
+              move right
+    read C -> write c
+              move right
+    read _ -> move left (We can't be on a _ when going left)
+              go-fully-left-and-match
+    else -> move right
+
+move-head-over: Assumes we are on the character that needs to be the new head.
+    read a -> write x
+              move right
+              start-cleaning-from-left
+    read A -> write x
+              move right
+              start-cleaning-from-left
+    read b -> write y
+              move right
+              start-cleaning-from-left
+    read B -> write y
+              move right
+              start-cleaning-from-left
+    read c -> write z
+              move right
+              start-cleaning-from-left
+    read C -> write z
+              move right
+              start-cleaning-from-left
+    read _ -> reject!
+    else -> start-cleaning-from-left

@@ -134,7 +134,7 @@ export class TM {
         } else if (starTransition != undefined) {
           state = performTransition(starTransition);
         } else {
-          return `halt (no matching transition for ${state}(${symbol}))`;
+          return `halt-reject (no matching transition for ${state}(${symbol}))`;
         }
 
         if (state.slice(0, 4) == "halt") {
@@ -147,7 +147,13 @@ export class TM {
   }
 
   getTape(): string {
-    if (this.tape.size == 0) return "";
-    return [...this.tape.values()].reduce((acc, value) => acc + value);
+    if (this.tape.size === 0) return "";
+
+    return [...this.tape.entries()]
+      .sort(([aKey], [bKey]) => aKey - bKey)
+      .map(([_, value]) => value)
+      .join("")
+      .split("_") // unsure if I want to keep the _ or not
+      .join("");
   }
 }

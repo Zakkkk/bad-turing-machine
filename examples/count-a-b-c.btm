@@ -1,0 +1,166 @@
+0 -> start
+
+#define setup letter left next-state direction
+setup-{letter}(*) -> setup-{letter}-0
+setup-{letter}-0(*) -> write 0
+                       move {direction}
+                       setup-{letter}-1
+setup-{letter}-1(*) -> write 0
+                       move {direction}
+                       setup-{letter}-2
+setup-{letter}-2(*) -> write 0
+                       move {direction}
+                       setup-{letter}-3
+setup-{letter}-3(*) -> write 0
+                       move {direction}
+                       setup-{letter}-end
+setup-{letter}-end(*) -> write {left}
+                         move {direction}
+                         {next-state}
+#enifed
+
+#define inc letter identifying-symbol end-state direction
+inc-{letter}:
+    read {identifying-symbol}:
+        move left
+        start-increment-{letter}
+    else -> move {direction}
+start-increment-{letter}:
+    read 0 -> write 1
+              {end-state}
+    read 1 -> write 2
+              {end-state}
+    read 2 -> write 3
+              {end-state}
+    read 3 -> write 4
+              {end-state}
+    read 4 -> write 5
+              {end-state}
+    read 5 -> write 6
+              {end-state}
+    read 6 -> write 7
+              {end-state}
+    read 7 -> write 0
+              move left
+              carry-inc-{letter}
+carry-inc-{letter}:
+    read 0 -> write 1
+              {end-state}
+    read 1 -> write 2
+              {end-state}
+    read 2 -> write 3
+              {end-state}
+    read 3 -> write 4
+              {end-state}
+    read 4 -> write 5
+              {end-state}
+    read 5 -> write 6
+              {end-state}
+    read 6 -> write 7
+              {end-state}
+    read 7 -> write 0
+              move left
+              carry-inc-{letter}
+    else: ran out of space lol, make sure to remove for the final submission!!!!!!
+        out-of-space-for-{identifying-symbol}!
+#enifed
+
+#define dec letter identifying-symbol end-state direction
+dec-{letter}:
+    read {identifying-symbol}:
+        move left
+        start-decrement-{letter}
+    else -> move {direction}
+start-decrement-{letter}:
+    read 0 -> write 7
+              move left
+              carry-dec-{letter}
+    read 1 -> write 0
+              {end-state}
+    read 2 -> write 1
+              {end-state}
+    read 3 -> write 2
+              {end-state}
+    read 4 -> write 3
+              {end-state}
+    read 5 -> write 4
+              {end-state}
+    read 6 -> write 5
+              {end-state}
+    read 7 -> write 6
+              {end-state}
+carry-dec-{letter}:
+    read 0 -> write 7
+              move left
+              carry-dec-{letter}
+    read 1 -> write 0
+              {end-state}
+    read 2 -> write 1
+              {end-state}
+    read 3 -> write 2
+              {end-state}
+    read 4 -> write 3
+              {end-state}
+    read 5 -> write 4
+              {end-state}
+    read 6 -> write 5
+              {end-state}
+    read 7 -> write 6
+              {end-state}
+    else: no negatives allowed, make sure to remove for the final submission!!!!!!
+        encountered-negative-for-{identifying-symbol}!
+#enifed
+
+start(*) -> move left
+            write-w
+
+write-w(*) -> write w
+              move left
+              setup-a
+
+{setup a x setup-b left}
+{setup b y setup-c left}
+{setup c z goto-start left}
+
+goto-start:
+    read w:
+        move right
+        start-counting
+    else -> move right
+
+{inc a w find-last-s left}
+{inc b x find-last-s left}
+{inc c y find-last-s left}
+
+start-counting:
+    read a:
+        write s
+        inc-a
+    read b:
+        write s
+        inc-b
+    read c:
+        write s
+        inc-c
+    read _:
+        start-clearing-s
+
+find-last-s:
+    read _ -> start-clearing-s
+    read s -> move right
+              increment-on-next-non-s
+    else -> move right
+
+increment-on-next-non-s:
+    read s -> move right
+    read _ -> start-clearing-s
+    else -> start-counting
+
+start-clearing-s -> move left
+             clear-s
+
+clear-s:
+    read s -> write _
+              move left
+    else -> move right
+            end!

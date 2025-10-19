@@ -42,18 +42,69 @@ const getTransitions = (program: string): Transition[] => {
     lines[i] = line.join("");
   }
 
+  // Doing macros now
+  let macros = new Map<string, (args: string[]) => string>();
+  let isInMacro = false;
+  let macroName = "";
+  let macroLines: string[] = [];
+  let macroArguments: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes("#define")) {
+      macroName = lines[i].split(" ")[1];
+      macroArguments = lines[i].split(" ").slice(2);
+      isInMacro = true;
+      lines[i] = "";
+    } else if (lines[i].includes("#enifed") && isInMacro) {
+      let macroLinesCopy = [...macroLines];
+      let macroArgumentsCopy = [...macroArguments];
+
+      macros.set(macroName, (args) => {
+        return macroLinesCopy
+          .map((line) => {
+            let expanded = line;
+            for (let k = 0; k < macroArgumentsCopy.length; k++) {
+              expanded = expanded.replaceAll(
+                `{${macroArgumentsCopy[k]}}`,
+                args[k] ?? "",
+              );
+            }
+            return expanded;
+          })
+          .join("\n");
+      });
+
+      isInMacro = false;
+      macroName = "";
+      macroArguments = [];
+      macroLines = [];
+      lines[i] = "";
+    } else if (isInMacro) {
+      macroLines.push(lines[i]);
+      lines[i] = "";
+    }
+  }
+
   program = lines.join("\n");
 
-  let tokens: string[] =
-    program.match(
-      /(^ +)| {2,}(?=[\w*!])|\r?\n|->|\([^) ]\)|:|[\w*!]+(?:[-_][\w*!]+)*|[-_!]/gm,
+  program = program.replaceAll(/\{[^\s{}]+(?:\s[^{}]*)?\}/g, (match) => {
+    match = match.slice(1).slice(0, -1);
+    const [macroName, ...args] = match.split(" ");
+    return macros.get(macroName)!(args);
+  });
+
+  const tokenise = (text: string): string[] =>
+    text.match(
+      /(^ +)| {2,}(?=[\w*!])|\r?\n|->|\([^) ]\)|\{[^}\r\n]*\}|:|[\w*!]+(?:[-_][\w*!]+)*|[-_!]/gm,
     ) ?? [];
+
+  let tokens = tokenise(program);
 
   tokens = tokens.flatMap((t) => (t === "else" ? ["read", "*"] : [t]));
   tokens = tokens.map((t) => (t == "right" || t == "left" ? t[0] : t));
 
   let indentLevel = 0;
 
+  // Start of processing new syntax into Morphett
   for (let j = 0; j < tokens.length; j++) {
     // Find the right amount of indentation
     if (/^ +$/.test(tokens[j])) {
@@ -238,14 +289,14 @@ const getTransitions = (program: string): Transition[] => {
   return Array.from(transitions.values()).flat() as Transition[];
 };
 
-const program = fs.readFileSync("program", "utf8");
+const program = fs.readFileSync("program.btm", "utf8");
 const transitions = getTransitions(program);
 
-fs.writeFileSync("morphett", "");
+fs.writeFileSync("morphett.txt", "");
 
 transitions.forEach((transition) => {
   fs.appendFileSync(
-    "morphett",
+    "morphett.txt",
     `
     ${transition.currentState}
     ${transition.currentCell}

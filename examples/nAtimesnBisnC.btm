@@ -1,0 +1,53 @@
+(Given a string of "a"s, "b"s, and "c"s, the number of "a"s multiplied by the number of "b"s equals the number of "c"s.)
+
+0 -> start
+
+#define goto-first symbol name return-state majority-direction fixing-direction
+{name}:
+    read {symbol}:
+        move {fixing-direction}
+        {return-state}
+    else -> move {majority-direction}
+#enifed
+
+start -> find-first-a
+
+(Match an "a", then after we find one, start with the "b" process.)
+find-first-a: Assumes we are fully on the left on a character.
+    read a -> write s ("s" for currently summing this "x")
+              start-finding-bs
+    read * -> move right
+    read _ -> move left
+              check-remaining-c
+
+(Match each "b", then match "c")
+{goto-first _ find-bs-start find-next-b left right}
+(For every "b" we need to match some "c", then go back to finding the next "b".)
+start-finding-bs -> find-bs-start
+find-next-b: Assumes we are fully on the left on a character.
+    read b -> write u
+              match-c (Then we need to return to match all the "b"s)
+    read _ -> move left
+              clean-up-b (No "b"s remain, lets clean up all the converted "b"s, and then match another "a".)
+    else -> move right
+
+clean-up-b: Assumes we are fully on the right on a character.
+    read * -> move left
+    read u -> write b
+              move left
+    read _ -> move right
+              find-first-a
+
+(Match "c")
+{goto-first _ match-c-go-left match-c-start left right}
+match-c -> match-c-go-left
+match-c-start: Assumes we are on the left on a character.
+    read * -> move right
+    read c -> write f
+              find-bs-start
+    read _ -> reject! (not enough "c"s to match)
+
+check-remaining-c: Assumes we are on the right on a character.
+    read * -> move left
+    read c -> reject!
+    read _ -> accept!

@@ -1,11 +1,22 @@
-Install bun or your favourite js interpreter.
+Install [bun](https://bun.com/).
 
-Throw your program into `program` and then run the program with `bun run main.ts input input input input`. The program will also be converted into Morphett notation into the `Morphett file.`. If you want to test the empty string use `\epsilon` as an input.
+Throw your program into `program` and then run the program with `bun run main.ts input input input input`. The program will also be converted into Morphett notation into the `Morphett` file. If you want to test the empty string use `\epsilon` as an input.
 
 Code quality not the best as this is a super quick project with next to no planning
 
 # Examples
-```sql
+## Example program outputs
+```
+$ bun run main.ts \epsilon a aa aaa abc
+-> : halt-reject
+a -> a: halt-reject
+aa -> aa: halt-reject (no matching transition for start(_))
+aaa -> aaa: halt-reject
+abc -> abc: halt-accept
+```
+
+## Example Programs
+```yaml
 (Turing machine that acceps 0^n 1^n : n >= 1)
 
 q0:
@@ -34,7 +45,7 @@ q3: Can add labels/comments after the colon
     read b -> accept!
 ```
 
-```sql
+```yaml
 (A program with logic errors, but the program runs fine)
 
 (Short hand using the arrow notation)
@@ -65,4 +76,17 @@ check-ones:
     _ -> accept!
     1 -> reject!
     else -> move right
+```
+
+Note that macros are a work in progress, and you cannot nest macros.
+```yaml
+#define macro-name param1 param2 param3 param4
+{param-1}:
+    {param-2} -> move {param3}
+                 {param4}
+#enifed
+
+{macro-name example-state example-read right end}
+
+q0 -> example-state
 ```
