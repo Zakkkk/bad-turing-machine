@@ -1,8 +1,12 @@
+⚠️ The code quality is not great as this was a fast prototype ⚠️
+
+This is a simple language which transpiles a high level language into morphett notation. This allows for more readable code and macros, reducing code repeating and increases clarity.
+
+# How To Run
+
 Install [bun](https://bun.com/).
 
 Throw your program into `program` and then run the program with `bun run main.ts input input input input`. The program will also be converted into Morphett notation into the `Morphett` file. If you want to test the empty string use `\epsilon` as an input.
-
-Code quality not the best as this is a super quick project with next to no planning
 
 # Examples
 ## Example program outputs
